@@ -1,29 +1,76 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import Home from '../views/Home.vue'
+import Dashboard from '../views/Dashboard.vue'
+import Houses from '../views/Houses'
+import Tenants from "../views/Tenants";
+import Login from "../components/Login";
+import Register from "../components/Register";
+// import Logout from "../components/Logout";
+import Landing from "../components/Landing";
+import Payments from "../views/Payments";
 
-Vue.use(VueRouter)
+Vue.use(VueRouter);
 
   const routes = [
   {
     path: '/',
-    name: 'Home',
-    component: Home
+    name: 'landing',
+    component: Landing
   },
   {
-    path: '/about',
-    name: 'About',
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "about" */ '../views/About.vue')
+    path: '/dashboard',
+    name: 'dashboard',
+    component: Dashboard,
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    path: '/houses',
+    name: 'houses',
+    component: Houses,
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    path: '/tenants',
+    name: 'tenants',
+    component: Tenants,
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    path: '/payments/:id',
+    name: 'payments',
+    component: Payments,
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    path: '/login',
+    name: 'login',
+    component: Login,
+    meta: {
+      requiresVisitor: true
+    }
+  },
+  {
+    path: '/register',
+    name: 'register',
+    component: Register,
+    meta: {
+      requiresVisitor: true
+    }
   }
-]
+];
 
 const router = new VueRouter({
   mode: 'history',
   base: process.env.BASE_URL,
   routes
-})
+});
 
 export default router
