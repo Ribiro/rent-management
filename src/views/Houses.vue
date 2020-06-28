@@ -1,5 +1,9 @@
 <template>
   <div class="houses">
+      <v-snackbar  v-model="this.$store.state.update_snackbar" :timeout="4000" top color="success">
+          <span>House updated successfully</span>
+          <v-btn small text color="white">Close</v-btn>
+      </v-snackbar>
 <!--    <Navbar></Navbar>-->
     <h1 class="subtitle-2 grey--text">My Houses</h1>
 
@@ -7,11 +11,11 @@
       <v-layout row class="mx-3 mb-3">
         <v-btn small  color="grey lighten-3 " v-model="sorting" v-on:click="sortBy('status'), sorting = !sorting">
           <v-icon left small>mdi-folder</v-icon>
-          <span class="caption text-lowercase"> By status</span>
+          <span class="caption text-lowercase">Sort</span>
         </v-btn>
         <v-spacer></v-spacer>
 <!--        new house-->
-        <v-btn small right class="mx-2" fab dark color="indigo">
+        <v-btn x-small right class="mx-2" fab dark color="indigo">
           <!-- dialog -->
           <v-dialog v-model="add_dialog" max-width="600px">
             <template v-slot:activator="{ on }">
@@ -48,31 +52,15 @@
           <v-flex xs6 sm6 md3>
             <div class="caption grey--text align-center">Actions</div>
               <div>
-<!--                update-->
-                      <!-- dialog -->
-                      <v-dialog v-model="update_dialog[index]" max-width="600px">
-                          <template v-slot:activator="{ on }">
-                              <v-icon left @click="getHouse(house.id)" small  v-on="on">mdi-pencil</v-icon>
-                          </template>
-                          <v-card>
-                              <v-card-title>Update {{house.house_no}}</v-card-title>
-                              <v-spacer></v-spacer>
-                              <v-icon text color="blue" @click="update_dialog = false">close</v-icon>
-                              <v-card-text>
-                                  <v-form @submit.prevent="updateHouse(house.id)" ref="form" v-model="valid">
-                                      <v-text-field  v-model="house.house_no"  label="house_no" :rules="houseNoRules"></v-text-field>
-                                      <v-text-field  v-model="house.rent_amount" type="number"  label="rent_amount" :rules="rentAmountRules"></v-text-field>
-                                      <v-btn :disabled="!valid" type="submit" color="success">Submit</v-btn>
-                                  </v-form>
-                              </v-card-text>
-                          </v-card>
-                      </v-dialog>
+                  <v-btn  :to="{name: 'update_house', params:{id:house.id}}" x-small text>
+                      <v-icon small>mdi-pencil</v-icon>
+                  </v-btn>
 
 <!--                delete-->
                     <!-- dialog -->
                     <v-dialog v-model="delete_dialog[index]" max-width="600px">
                         <template v-slot:activator="{ on }">
-                            <v-icon right small  v-on="on">mdi-delete</v-icon>
+                            <v-icon class="black--text" right small  v-on="on">mdi-delete</v-icon>
                         </template>
                         <v-card>
                             <v-card-title class="text-uppercase grey--text font-weight-light">Are you sure to delete {{house.house_no}}?</v-card-title>
@@ -85,7 +73,6 @@
                             </v-card-actions>
                         </v-card>
                     </v-dialog>
-<!--                  <v-icon right small v-on:click="removeHouse(house.id)">mdi-delete</v-icon>-->
               </div>
           </v-flex>
         </v-layout>
@@ -104,6 +91,7 @@
     },
     data(){
       return {
+        snackbar: false,
         valid: true,
         add_dialog:false,
         update_dialog: [],
@@ -145,25 +133,11 @@
           this.house_no = '';
           this.rent_amount = '';
           this.add_dialog = false ;//close the dialog
+          this.$store.dispatch('getHouses');
           console.log(status)
         }).catch(()=>{
           console.log('did not add')
         })
-      },
-      // update a house
-      updateHouse(id){
-          this.$store.dispatch('updateHouse', {
-              id:id,
-              house_no:this.house_no,
-              rent_amount:this.rent_amount,
-          }).then(response => {
-              this.house_no = '';
-              this.rent_amount = '';
-              this.update_dialog = false ;//close the dialog
-              console.log(response.data)
-          }).catch(()=>{
-              console.log('did not update')
-          })
       },
       // delete a house
       removeHouse(id) {

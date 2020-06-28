@@ -2,13 +2,13 @@
     <div id="tenants">
 <!--        <NavBar></NavBar>-->
         <v-snackbar  v-model="snackbar" :timeout="4000" top color="success">
-            <span>Tenant successfully added</span>
+            <span>Tenant successfully added {{this.toUpdate}}</span>
             <v-btn small text color="white">Close</v-btn>
         </v-snackbar>
-        <h1 class="subtitle-2 grey--text">Dashboard/ Tenants</h1>
 
         <v-container  class="my-5">
             <v-layout row class="mx-3 mb-3">
+                <h1 class="subtitle-2 grey--text">Tenants</h1>
                 <v-spacer></v-spacer>
                 <!--        new house-->
                 <v-btn small right class="mx-2" fab dark color="indigo">
@@ -18,7 +18,7 @@
                             <v-icon dark v-on="on">mdi-plus</v-icon>
                         </template>
                         <v-card>
-                            <v-card-title>Add house</v-card-title>
+                            <v-card-title>New Tenant</v-card-title>
                             <v-card-text>
                                 <v-form @submit.prevent="submitTenant" ref="form" v-model="valid">
                                     <v-text-field v-model="name" label="Tenant Name" :rules="nameRules"></v-text-field>
@@ -95,6 +95,7 @@
         // components: {NavBar},
         data(){
             return {
+                id: 7,
                 snackbar: false,
                 valid: true,
                 add_dialog:false,
@@ -104,6 +105,7 @@
                 phone: '',
                 email: '',
                 status: 'vacant',
+                occupied: 'occupied',
                 nameRules:[
                     value => !!value || 'tenant name is required'
                 ],
@@ -128,6 +130,11 @@
             this.$store.dispatch('getTenants');
             this.$store.dispatch('getHousesByStatus', this.status);
         },
+        computed: {
+            toUpdate(){
+                return this.$store.state.house_by_no.id
+            }
+        },
         methods: {
             // add a new tenant
             submitTenant(){
@@ -138,20 +145,37 @@
                     email:this.email
                 }).then(()=>{
                     // when the promise has been resolved
+                    // set house's status to occupied
+                    this.$store.dispatch('getHouseByHouseNo', this.house_no);
+                    // refresh tenants list
+                    this.$store.dispatch('getTenants');
+                    // reset name, house, phone, and email variables
                     this.name = '';
                     this.house_no = '';
                     this.phone = '';
                     this.email = '';
-                    // update on submit
-                    this.$store.dispatch('updateHouse', {
-                        status: 'occupied'
-                    });
                     this.add_dialog = false ;//close the dialog
                     this.snackbar = true; //show the snackbar
+                    this.updateHouseStatus(this.id);
                     console.log(status)
                 }).catch(()=>{
                     // when the promise is unresolved
                     console.log('something went wrong')
+                })
+            },
+            // update the house status
+            updateHouseStatus(id){
+                this.$store.dispatch('updateHouseStatus', {
+                    id:id,
+                    status: this.status
+                }).then(response => {
+                    // this.$router.push({name: 'houses'});
+                    // this.$store.state.update_snackbar= true;
+                    // this.house_no = '';
+                    // this.rent_amount = '';
+                    console.log(response.data)
+                }).catch(()=>{
+                    console.log('did not update')
                 })
             },
             removeTenant(id){

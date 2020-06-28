@@ -2,6 +2,24 @@
     <v-card>
         <v-card-title>
             <h1 class="subtitle-2 grey--text">Payment Records</h1>
+            <!--        new house-->
+            <v-btn x-small left class="mx-2" fab dark color="indigo">
+                <!-- dialog -->
+                <v-dialog v-model="add_dialog" max-width="600px">
+                    <template v-slot:activator="{ on }">
+                        <v-icon dark v-on="on">mdi-plus</v-icon>
+                    </template>
+                    <v-card>
+                        <v-card-title>New payment</v-card-title>
+                        <v-card-text>
+                            <v-form @submit.prevent="submitPayment" ref="form" v-model="valid">
+                                <v-text-field type="number" v-model="amount" label="Amount" :rules="amountRules"></v-text-field>
+                                <v-btn :disabled="!valid" type="submit" color="success">Submit</v-btn>
+                            </v-form>
+                        </v-card-text>
+                    </v-card>
+                </v-dialog>
+            </v-btn>
             <v-spacer></v-spacer>
             <v-text-field
                     v-model="search"
@@ -10,24 +28,6 @@
                     single-line
                     hide-details
             ></v-text-field>
-            <!--        new house-->
-            <v-btn x-small left class="mx-2" fab dark color="indigo">
-                <!-- dialog -->
-                <v-dialog v-model="add_dialog" max-width="600px">
-                    <template v-slot:activator="{ on }">
-                        <v-icon dark v-on="on">mdi-plus</v-icon>
-                    </template>
-                        <v-card>
-                            <v-card-title>New payment</v-card-title>
-                            <v-card-text>
-                                <v-form @submit.prevent="submitPayment" ref="form" v-model="valid">
-                                    <v-text-field type="number" v-model="amount" label="Amount" :rules="amountRules"></v-text-field>
-                                    <v-btn :disabled="!valid" type="submit" color="success">Submit</v-btn>
-                                </v-form>
-                            </v-card-text>
-                        </v-card>
-                </v-dialog>
-            </v-btn>
         </v-card-title>
         <v-data-table
                 :headers="headers"
@@ -60,7 +60,6 @@
                 tenant_id: '',
                 add_dialog: false,
                 valid: true,
-                id: 4,
                 amountRules:[
                     value => !!value || 'amount paid is required',
                     // value => (value || '').match(0, 1, 2, 3, 4, 5, 6, 7, 8, 9) ||'rent amount must be of numerical character only',
@@ -93,7 +92,7 @@
                 this.$store.dispatch('addPayment',{
                     amount:this.amount,
                     tenant_id: this.getIdFromURL()
-                }, this.id).then(()=>{
+                }).then(()=>{
                     // when the promise has been resolved
                     this.amount = '';
                     this.tenant_id = '';

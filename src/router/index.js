@@ -8,6 +8,8 @@ import Register from "../components/Register";
 // import Logout from "../components/Logout";
 import Landing from "../components/Landing";
 import Payments from "../views/Payments";
+import Expenses from "../components/Expenses";
+import UpdateHouse from "../components/UpdateHouse";
 
 Vue.use(VueRouter);
 
@@ -42,6 +44,14 @@ Vue.use(VueRouter);
     }
   },
   {
+    path: '/expenses',
+    name: 'expenses',
+    component: Expenses,
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
     path: '/payments/:id',
     name: 'payments',
     component: Payments,
@@ -64,7 +74,15 @@ Vue.use(VueRouter);
     meta: {
       requiresVisitor: true
     }
-  }
+  },
+  {
+    path: '/house/:id',
+    name: 'update_house',
+    component: UpdateHouse,
+    meta: {
+      requiresAuth: true
+    }
+  },
 ];
 
 const router = new VueRouter({

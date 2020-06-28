@@ -9,13 +9,16 @@ export default new Vuex.Store({
   state: {
       token: localStorage.getItem('access_token') || null,
       loading:false,
+      update_snackbar: false,
       houses:[],
       house:[],
+      house_by_no:[],
       vacant_houses:[],
       house_no:'',
       rent_amount:'',
       tenants: [],
-      payments: []
+      payments: [],
+      expenses: []
   },
   getters: {
     loggedIn(state) {
@@ -43,6 +46,9 @@ export default new Vuex.Store({
     setHouse(state, payload) {
         state.house = payload
     } ,
+    setHouseByNo(state, payload) {
+      state.house_by_no = payload
+    } ,
     setHouseByStatus(state, payload){
         state.vacant_houses = payload
     },
@@ -52,12 +58,21 @@ export default new Vuex.Store({
     },
     updateHouse(state, house){
         const index = this.state.houses.findIndex(house => house.id === house.id)
-        state.houses.splice(index, 1, {
+        state.houses.splice(index, {
             'id': house.id,
             'house_no': house.house_no,
             'rent_amount': house.rent_amount,
             'status': house.status
         })
+    },
+    updateHouseStatus(state, house){
+      const index = this.state.houses.findIndex(house => house.id === house.id)
+      state.houses.splice(index, {
+          'id': house.id,
+          'house_no': house.house_no,
+          'rent_amount': house.rent_amount,
+          'status': house.status
+      })
     },
 
   // tenants section
@@ -73,21 +88,34 @@ export default new Vuex.Store({
       state.tenants = payload
     },
     deleteTenant(state, id) {
-      const index = state.tenants.findIndex(tenant => tenant.id === id)
+      const index = state.tenants.findIndex(tenant => tenant.id === id);
       state.tenants.splice(index, 1)
     },
-
       // payments section
-    updatePaymentsList(state, payment){
-      state.tenants.push({
-          amount: payment.amount
-      })
-    },
-    // setPayments(state,payload){
-    //   state.payments = payload
-    // },
     setPaymentsByTenantId(state, payload){
       state.payments = payload
+    },
+
+    updatePaymentsList(state, payment){
+      state.payments.push({
+          amount: payment.amount,
+          balance: payment.balance,
+          date: payment.date,
+          transaction_id: payment.transaction_id,
+          transaction_type: payment.transaction_type
+      })
+    },
+
+    // expenses mutations
+    updateExpensesList(state, expense){
+      state.expenses.push({
+          amount: expense.amount,
+          description: expense.description,
+          date: expense.date,
+      })
+    },
+    setExpenses(state,payload){
+      state.expenses = payload
     },
   },
   actions: {
@@ -207,6 +235,24 @@ export default new Vuex.Store({
       })
 
   },
+  // get house by house number
+  getHouseByHouseNo(context, house_no){
+      axios.defaults.headers.common['Authorization'] = `Bearer ${context.state.token}`;
+      return new Promise((resolve,reject)=>{
+
+          axios.get('/house/' + house_no)
+              .then(response=>{
+                  context.commit('setHouseByNo',response.data);
+                  console.log(response)
+                  resolve(resolve);
+              })
+              .catch(error=>{
+                  console.log(error);
+                  reject(error)
+              })
+      })
+
+  },
   // get houses by status
   getHousesByStatus(context, status){
       axios.defaults.headers.common['Authorization'] = `Bearer ${context.state.token}`;
@@ -239,13 +285,23 @@ export default new Vuex.Store({
         axios.put('/houses/' + house.id, {
             house_no: house.house_no,
             rent_amount: house.rent_amount,
-            status: house.status
+            // status: house.status
         }).then(response =>{
-            context.commit('updateHouse', response.data)
+            context.commit('updateHouse', response.data);
             console.log(response.data)
         }).catch(error => {
             console.log(error)
         })
+  },
+  updateHouseStatus(context, house){
+      axios.put('/house/' + house.id, {
+          status: house.status
+      }).then(response =>{
+          context.commit('updateHouseStatus', response.data);
+          console.log(response.data)
+      }).catch(error => {
+          console.log(error)
+      })
   },
 
   // tenants section
@@ -314,29 +370,13 @@ export default new Vuex.Store({
                   resolve()
               })
               .catch(error=>{
+                  console.log('there is some error');
                   console.log(error);
                   reject()
               })
       })
 
   },
-  // getPayments(context){
-  //     axios.defaults.headers.common['Authorization'] = `Bearer ${context.state.token}`;
-  //     return new Promise((resolve,reject)=>{
-  //
-  //         axios.get('/payments')
-  //             .then(response=>{
-  //                 context.commit('setPayments',response.data.payments);
-  //                 resolve(resolve);
-  //                 console.log(response)
-  //             })
-  //             .catch(error=>{
-  //                 console.log(error);
-  //                 reject(error)
-  //             })
-  //     })
-  //
-  // },
   // get houses by status
   getPaymentsByTenantId(context, tenant_id){
       axios.defaults.headers.common['Authorization'] = `Bearer ${context.state.token}`;
@@ -347,6 +387,45 @@ export default new Vuex.Store({
                   context.commit('setPaymentsByTenantId',response.data);
                   console.log(response);
                   resolve(resolve);
+              })
+              .catch(error=>{
+                  console.log(error);
+                  reject(error)
+              })
+      })
+
+  },
+  // expenses section
+  addExpense(context,expense){
+      axios.defaults.headers.common['Authorization'] = `Bearer ${context.state.token}`;
+
+      return new Promise((resolve,reject)=>{
+          axios.post('/expenses', {
+              description: expense.description,
+              amount: expense.amount
+          })
+              .then(response=>{
+                  console.log(response.data);
+                  context.commit("updateExpensesList",response.data);
+                  resolve()
+              })
+              .catch(error=>{
+                  console.log('there is some error');
+                  console.log(error);
+                  reject()
+              })
+      })
+
+  },
+  getExpenses(context){
+      axios.defaults.headers.common['Authorization'] = `Bearer ${context.state.token}`;
+      return new Promise((resolve,reject)=>{
+
+          axios.get('/expenses')
+              .then(response=>{
+                  context.commit('setExpenses',response.data);
+                  resolve(resolve);
+                  console.log(response)
               })
               .catch(error=>{
                   console.log(error);
