@@ -3,7 +3,8 @@ import Vuex from 'vuex'
 import axios from 'axios'
 
 Vue.use(Vuex);
-axios.defaults.baseURL = 'https://ribiro-rent.herokuapp.com/api/v1';
+// axios.defaults.baseURL = 'https://ribiro-rent.herokuapp.com/api/v1'; // production
+axios.defaults.baseURL = 'http://127.0.0.1:5000/api/v1'; //development
 
 export default new Vuex.Store({
   state: {
@@ -17,13 +18,24 @@ export default new Vuex.Store({
       house_no:'',
       rent_amount:'',
       tenants: [],
+      tenant:[],
       payments: [],
-      expenses: []
+      expenses: [],
+      // sort_ascending: true,
+      sort_by: 'id',
   },
   getters: {
     loggedIn(state) {
       return state.token !== null
-    }
+    },
+    // sorted_houses(state){
+    //   const houses = [this.state.houses].sort((a,b) => {
+    //       if(a[state.sort_by] > b[state.sort_by]){return 1}
+    //       if(a[state.sort_by] < b[state.sort_by]){return -1}
+    //       return houses
+    //
+    //   });
+    // }
   },
   mutations: {
     retrieveToken(state, token){
@@ -66,7 +78,7 @@ export default new Vuex.Store({
         })
     },
     updateHouseStatus(state, house){
-      const index = this.state.houses.findIndex(house => house.id === house.id)
+      const index = this.state.houses.findIndex(house => house.id === house.id);
       state.houses.splice(index, {
           'id': house.id,
           'house_no': house.house_no,
@@ -81,11 +93,37 @@ export default new Vuex.Store({
           name: tenant.name,
           phone: tenant.phone,
           email: tenant.email,
-          house_no: tenant.house_no
+          house_no: tenant.house_no,
+          is_occupied: tenant.is_occupied
       })
     },
     setTenants(state,payload){
       state.tenants = payload
+    },
+    setTenant(state, payload) {
+      state.tenant = payload
+    } ,
+    updateTenant(state, tenant){
+      const index = this.state.tenants.findIndex(house => house.id === house.id);
+      state.tenants.splice(index, {
+          'id': tenant.id,
+          'name': tenant.name,
+          'phone': tenant.phone,
+          'email': tenant.email,
+          'house_no': tenant.house_no,
+          'is_occupied': tenant.is_occupied
+      })
+    },
+    updateTenantIsOccupied(state, tenant){
+      const index = this.state.tenants.findIndex(house => house.id === house.id);
+      state.tenants.splice(index, {
+          'id': tenant.id,
+          'name': tenant.name,
+          'phone': tenant.phone,
+          'email': tenant.email,
+          'house_no': tenant.house_no,
+          'is_occupied': tenant.is_occupied
+      })
     },
     deleteTenant(state, id) {
       const index = state.tenants.findIndex(tenant => tenant.id === id);
@@ -117,6 +155,22 @@ export default new Vuex.Store({
     setExpenses(state,payload){
       state.expenses = payload
     },
+      // sort houses
+    sortHouses(state, sortKey) {
+      console.log('running mutation');
+      const houses = this.state.houses;
+      houses.sort((a, b) => {
+          let compare = 0;
+          if (a[sortKey] < b[sortKey]) {
+              compare = -1;
+          }
+          else if (b[sortKey] < a[sortKey]) {
+              compare = -1;
+          }
+          return compare;
+      });
+      state.houses = houses;
+    }
   },
   actions: {
     register(context, data){
@@ -294,7 +348,7 @@ export default new Vuex.Store({
         })
   },
   updateHouseStatus(context, house){
-      axios.put('/house/' + house.id, {
+      axios.put('/house/' + house.house_no, {
           status: house.status
       }).then(response =>{
           context.commit('updateHouseStatus', response.data);
@@ -314,7 +368,8 @@ export default new Vuex.Store({
               name: tenant.name,
               phone: tenant.phone,
               email: tenant.email,
-              house_no: tenant.house_no
+              house_no: tenant.house_no,
+              is_occupied: tenant.is_occupied
           })
               .then(response=>{
                   console.log(response.data);
@@ -345,6 +400,64 @@ export default new Vuex.Store({
       })
 
   },
+  // get house by id
+  getTenantById(context, id){
+      axios.defaults.headers.common['Authorization'] = `Bearer ${context.state.token}`;
+      return new Promise((resolve,reject)=>{
+
+          axios.get('/tenants/' + id)
+              .then(response=>{
+                  context.commit('setTenant',response.data);
+                  console.log(response);
+                  resolve(resolve);
+              })
+              .catch(error=>{
+                  console.log(error);
+                  reject(error)
+              })
+      })
+
+  },
+  // get tenants by isOccupied
+  getTenantByIsOccupied(context, is_occupied){
+      axios.defaults.headers.common['Authorization'] = `Bearer ${context.state.token}`;
+      return new Promise((resolve,reject)=>{
+
+          axios.get('/tenant/' + is_occupied)
+              .then(response=>{
+                  context.commit('setTenant',response.data);
+                  console.log(response);
+                  resolve(resolve);
+              })
+              .catch(error=>{
+                  console.log(error);
+                  reject(error)
+              })
+      })
+
+  },
+  updateTenant(context, tenant){
+      axios.put('/tenants/' + tenant.id, {
+          name: tenant.name,
+          phone: tenant.phone,
+          email: tenant.email,
+      }).then(response =>{
+          context.commit('updateTenant', response.data);
+          console.log(response.data)
+      }).catch(error => {
+          console.log(error)
+      })
+  },
+   updateTenantIsOccupied(context, tenant){
+        axios.put('/tenant/' + tenant.house_no, {
+          is_occupied: tenant.is_occupied
+        }).then(response =>{
+          context.commit('updateTenantIsOccupied', response.data);
+          console.log(response.data)
+        }).catch(error => {
+          console.log(error)
+        })
+   },
   deleteTenant(context, id) {
       axios.delete('/tenants/' + id)
       // eslint-disable-next-line no-unused-vars

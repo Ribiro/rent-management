@@ -1,6 +1,6 @@
 <template>
     <nav id="app">
-        <v-navigation-drawer v-if="loggedIn" v-model="drawer" app class="indigo">
+        <v-navigation-drawer v-if="loggedIn" v-model="drawer" app class="purple">
             <v-layout column align-center="">
                 <v-flex class="mt-5">
                     <v-avatar size="100">

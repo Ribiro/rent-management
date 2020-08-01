@@ -9,7 +9,7 @@
 
     <v-container  class="my-5">
       <v-layout row class="mx-3 mb-3">
-        <v-btn small  color="grey lighten-3 " v-model="sorting" v-on:click="sortBy('status'), sorting = !sorting">
+        <v-btn small  color="grey lighten-3 " v-model="sorting" v-on:click="sortBy('status')">
           <v-icon left small>mdi-folder</v-icon>
           <span class="caption text-lowercase">Sort</span>
         </v-btn>
@@ -91,6 +91,7 @@
     },
     data(){
       return {
+          houses:this.$store.state.houses,
         snackbar: false,
         valid: true,
         add_dialog:false,
@@ -114,15 +115,15 @@
     mounted(){
         this.$store.dispatch('getHouses')
     },
+    computed: {
+        // sorted(){
+        //     return this.$store.getters.sorted_houses
+        // }
+    },
     methods: {
-      sortBy(property){
-        if (this.sorting === false){
-          this.houses.sort((a, b) => a[property] < b[property] ? -1 :1)
-        }
-        else {
-          this.houses.sort((a, b) => a[property] < b[property] ? 1 : -1)
-        }
-      },
+        sortBy (sortKey) {
+            this.$store.commit('sortHouses', sortKey);
+        },
       // add a new house
       submitHouse(){
         this.$store.dispatch('addHouse',{
@@ -148,7 +149,7 @@
       // get single house
       getHouse(id){
           this.$store.dispatch('getHouseById', id)
-      }
+      },
     }
   }
 </script>

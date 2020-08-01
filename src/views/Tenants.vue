@@ -35,25 +35,27 @@
                 </v-btn>
             </v-layout>
             <v-layout row wrap>
-                <v-flex xs12 sm6 md4 lg3 v-for="(tenant, index) in $store.state.tenants" :key="index">
+                <v-flex xs12 sm6 md4 lg3 v-for="(tenant, index) in $store.state.tenant" :key="index">
                     <v-card flat class="text-center ma-3">
                         <v-card-title>
                             <v-icon left>mdi-account</v-icon>
                             <span class="title font-weight-light">{{tenant.name}}</span>
                             <v-spacer></v-spacer>
-                            <v-icon small class="mr-2">mdi-pencil</v-icon>
+                            <v-btn  :to="{name: 'update_tenant', params:{id:tenant.id}}" x-small text>
+                                <v-icon small>mdi-pencil</v-icon>
+                            </v-btn>
                             <!--                delete-->
                                 <!-- dialog -->
                                 <v-dialog v-model="delete_dialog[index]" max-width="600px">
                                     <template v-slot:activator="{ on }">
-                                        <v-icon small  v-on="on">mdi-delete</v-icon>
+                                        <v-icon small class="black--text"  v-on="on">mdi-delete</v-icon>
                                     </template>
                                     <v-card>
                                         <v-card-title class="text-uppercase grey--text font-weight-light">Are you sure to remove {{tenant.name}}?</v-card-title>
 
                                         <v-card-actions>
                                             <v-spacer></v-spacer>
-                                            <v-btn right color="red darken-1" text v-on:click="removeTenant(tenant.id)">
+                                            <v-btn right color="red darken-1" text v-on:click="removeTenant(tenant.house_no)">
                                                 Agree
                                             </v-btn>
                                         </v-card-actions>
@@ -106,6 +108,10 @@
                 email: '',
                 status: 'vacant',
                 occupied: 'occupied',
+                is_occupied: 1,
+                notOccupied: 2,
+                house_to_update: '',
+                noneHouseNo: '',
                 nameRules:[
                     value => !!value || 'tenant name is required'
                 ],
@@ -127,7 +133,7 @@
             }
         },
         mounted(){
-            this.$store.dispatch('getTenants');
+            this.$store.dispatch('getTenantByIsOccupied', this.is_occupied);
             this.$store.dispatch('getHousesByStatus', this.status);
         },
         computed: {
@@ -142,13 +148,16 @@
                     name:this.name,
                     house_no:this.house_no,
                     phone:this.phone,
-                    email:this.email
+                    email:this.email,
+                    is_occupied: this.is_occupied
                 }).then(()=>{
                     // when the promise has been resolved
                     // set house's status to occupied
-                    this.$store.dispatch('getHouseByHouseNo', this.house_no);
+                    // this.$store.dispatch('getHouseByHouseNo', this.house_no);
+                    // update the status to occupied
+                    this.updateHouseStatus(this.house_no);
                     // refresh tenants list
-                    this.$store.dispatch('getTenants');
+                    this.$store.dispatch('getTenantByIsOccupied', this.is_occupied);
                     // reset name, house, phone, and email variables
                     this.name = '';
                     this.house_no = '';
@@ -156,7 +165,8 @@
                     this.email = '';
                     this.add_dialog = false ;//close the dialog
                     this.snackbar = true; //show the snackbar
-                    this.updateHouseStatus(this.id);
+                    // refresh vacant houses
+                    this.$store.dispatch('getHousesByStatus', this.status);
                     console.log(status)
                 }).catch(()=>{
                     // when the promise is unresolved
@@ -164,10 +174,10 @@
                 })
             },
             // update the house status
-            updateHouseStatus(id){
+            updateHouseStatus(house_no){
                 this.$store.dispatch('updateHouseStatus', {
-                    id:id,
-                    status: this.status
+                    house_no:house_no,
+                    status: this.occupied
                 }).then(response => {
                     // this.$router.push({name: 'houses'});
                     // this.$store.state.update_snackbar= true;
@@ -178,10 +188,36 @@
                     console.log('did not update')
                 })
             },
-            removeTenant(id){
-                this.$store.dispatch('deleteTenant', id);
-                this.delete_dialog=false
-            }
+            // update the house status
+            updateTenantIsOccupied(house_no){
+                this.$store.dispatch('updateTenantIsOccupied', {
+                    house_no: house_no,
+                    is_occupied: this.notOccupied
+                }).then(response => {
+                    console.log(response.data)
+                }).catch(()=>{
+                    console.log('did not update')
+                })
+            },
+            removeTenant(house_no){
+                this.$store.dispatch('updateHouseStatus', {
+                    house_no:house_no,
+                    status: this.status
+                }).then(response => {
+                    // this.$router.push({name: 'houses'});
+                    // this.$store.state.update_snackbar= true;
+                    // this.house_no = '';
+                    // this.rent_amount = '';
+                    this.house_to_update = house_no;
+                    this.updateTenantIsOccupied(this.house_to_update);
+                    this.delete_dialog=false;
+                    // refresh tenants list
+                    this.$store.dispatch('getTenantByIsOccupied', this.is_occupied);
+                    console.log(response.data)
+                }).catch(()=>{
+                    console.log('did not update')
+                })
+            },
         }
     }
 </script>

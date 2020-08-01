@@ -1,5 +1,5 @@
 <template>
-    <v-form @submit.prevent="updateHouse(id)" ref="form" v-model="valid">
+    <v-form class="mt-9" @submit.prevent="updateHouse(id)" ref="form" v-model="valid">
         <v-card>
             <v-card-title>Update {{this.$store.state.house.house_no}}</v-card-title>
             <v-card-text>

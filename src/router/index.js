@@ -10,6 +10,7 @@ import Landing from "../components/Landing";
 import Payments from "../views/Payments";
 import Expenses from "../components/Expenses";
 import UpdateHouse from "../components/UpdateHouse";
+import UpdateTenant from "../components/UpdateTenant";
 
 Vue.use(VueRouter);
 
@@ -79,6 +80,14 @@ Vue.use(VueRouter);
     path: '/house/:id',
     name: 'update_house',
     component: UpdateHouse,
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    path: '/tenant/:id',
+    name: 'update_tenant',
+    component: UpdateTenant,
     meta: {
       requiresAuth: true
     }
