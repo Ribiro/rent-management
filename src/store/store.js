@@ -3,8 +3,8 @@ import Vuex from 'vuex'
 import axios from 'axios'
 
 Vue.use(Vuex);
-// axios.defaults.baseURL = 'https://ribiro-rent.herokuapp.com/api/v1'; // production
-axios.defaults.baseURL = 'http://127.0.0.1:5000/api/v1'; //development
+axios.defaults.baseURL = 'https://ribiro-rent.herokuapp.com/api/v1'; // production
+// axios.defaults.baseURL = 'http://127.0.0.1:5000/api/v1'; //development
 
 export default new Vuex.Store({
   state: {
